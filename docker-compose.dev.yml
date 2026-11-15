@@ -1,0 +1,33 @@
+# Test environment: timelimit-server in development mode (login codes are
+# printed to the server log instead of being mailed) + MariaDB.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml logs -f timelimit   # login codes
+#   npm run dev                                                  # web app on http://localhost:5173
+#
+# The vite dev server proxies the API to http://localhost:8080
+# (override with TIMELIMIT_SERVER=...).
+
+services:
+  timelimit:
+    build: https://codeberg.org/timelimit/timelimit-server.git
+    environment:
+      NODE_ENV: development
+      PORT: 8080
+      DATABASE_URL: mariadb://timelimit:timelimit@db:3306/timelimit
+      ADMIN_TOKEN: dev-admin-token
+      # ALWAYS_PRO: "yes"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: timelimit
+      MARIADB_USER: timelimit
+      MARIADB_PASSWORD: timelimit
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+    tmpfs:
+      - /var/lib/mysql

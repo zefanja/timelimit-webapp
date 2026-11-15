@@ -5,7 +5,7 @@
 
 import { AppLogicAction } from '../actions/parentActions'
 import { ServerDataStatus, ServerDeviceData } from '../api/types'
-import { base64Decode, base64Encode, bytesEqual } from '../crypto/bytes'
+import { base64Decode, base64Encode } from '../crypto/bytes'
 import {
   decryptCryptContainer,
   readCryptContainerHeader,
@@ -389,7 +389,3 @@ export function processAfterPull({
   return { state, actions, appListsChanged }
 }
 
-export function isPublicKeyEqual(a: string | undefined, b: string | null) {
-  if (!a || !b) return false
-  return bytesEqual(base64Decode(a), base64Decode(b))
-}

@@ -1,0 +1,49 @@
+# Production stack for Portainer: web app (+ API proxy), timelimit-server, MariaDB.
+# Put an HTTPS reverse proxy (Traefik, Caddy, Nginx Proxy Manager, …) in front
+# of the "web" service. Use the same public URL in the web app AND on the child
+# phones (TimeLimit → vernetzter Modus → eigener Server).
+#
+# Required: set the variables below (e.g. as Portainer stack environment).
+
+services:
+  web:
+    build: .
+    # or: image: ghcr.io/<you>/timelimit-webapp:latest
+    restart: unless-stopped
+    environment:
+      TIMELIMIT_UPSTREAM: http://timelimit:8080
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - timelimit
+
+  timelimit:
+    # unmodified upstream server, built from source
+    build: https://codeberg.org/timelimit/timelimit-server.git
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      DATABASE_URL: mariadb://timelimit:${DB_PASSWORD:?DB_PASSWORD fehlt}@db:3306/timelimit
+      MAIL_SENDER: ${MAIL_SENDER:?MAIL_SENDER fehlt}
+      MAIL_TRANSPORT: ${MAIL_TRANSPORT:?MAIL_TRANSPORT fehlt}
+      MAIL_WHITELIST: ${MAIL_WHITELIST:-}
+      DISABLE_SIGNUP: ${DISABLE_SIGNUP:-no}
+      ALWAYS_PRO: ${ALWAYS_PRO:-yes}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: timelimit
+      MARIADB_USER: timelimit
+      MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD fehlt}
+      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+    volumes:
+      - timelimit-db:/var/lib/mysql
+
+volumes:
+  timelimit-db:
