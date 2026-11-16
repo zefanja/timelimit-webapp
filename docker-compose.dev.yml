@@ -5,7 +5,7 @@
 #   docker compose -f docker-compose.dev.yml logs -f timelimit   # login codes
 #   npm run dev                                                  # web app on http://localhost:5173
 #
-# The vite dev server proxies the API to http://localhost:8080
+# The vite dev server proxies the API to http://localhost:8181
 # (override with TIMELIMIT_SERVER=...).
 
 services:
@@ -19,7 +19,7 @@ services:
       SIGN_SECRET: dev-sign-secret
       # ALWAYS_PRO: "yes"
     ports:
-      - "8080:8080"
+      - "8181:8080"
     depends_on:
       db:
         condition: service_healthy

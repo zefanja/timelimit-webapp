@@ -9,7 +9,7 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 // The timelimit-server only sends CORS headers for /admin, so the web app
 // must be served from the same origin as the API. In development the vite
 // server proxies the API paths (like nginx does in production).
-const apiTarget = process.env.TIMELIMIT_SERVER ?? 'http://localhost:8080'
+const apiTarget = process.env.TIMELIMIT_SERVER ?? 'http://localhost:8181'
 const apiPaths = ['/auth', '/parent', '/sync', '/child', '/purchase', '/admin', '/time']
 const proxy = {
   ...Object.fromEntries(apiPaths.map((path) => [path, { target: apiTarget, changeOrigin: true }])),

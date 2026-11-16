@@ -80,7 +80,7 @@ docker compose -f docker-compose.dev.yml up -d
 npm run dev
 ```
 
-Im Entwicklungsmodus stehen die Login-Codes im Server-Log (`docker compose -f docker-compose.dev.yml logs -f timelimit`). Der Vite-Server leitet die API an `http://localhost:8080` weiter, ein anderer Server lässt sich mit `TIMELIMIT_SERVER=…` angeben.
+Im Entwicklungsmodus stehen die Login-Codes im Server-Log (`docker compose -f docker-compose.dev.yml logs -f timelimit`). Der Vite-Server leitet die API an `http://localhost:8181` weiter, ein anderer Server lässt sich mit `TIMELIMIT_SERVER=…` angeben.
 
 ### Tests
 
@@ -97,7 +97,7 @@ TIMELIMIT_SERVER_DIR=../timelimit-server npm test
 ### Smoke-Test gegen einen echten Server (ohne UI)
 
 ```bash
-npm run smoke -- --server http://localhost:8080 --log ./server.log --simulate-child
+npm run smoke -- --server http://localhost:8181 --log ./server.log --simulate-child
 ```
 
 Der Test meldet sich per Mail an und legt eine Familie an. Er prüft die Passwort-Verifikation, legt Kind, Kategorie, Regel und Sperrzeiten an und testet Extrazeit und Sperren. Er prüft, dass eine falsche Signatur erkannt wird, koppelt ein simuliertes Kindgerät, entschlüsselt dessen App-Liste, ordnet Apps zu und kontrolliert, dass die Änderungen beim Kindgerät ankommen. Ohne `--log` fragt er den Mail-Code im Terminal ab.

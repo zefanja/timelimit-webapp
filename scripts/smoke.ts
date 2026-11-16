@@ -1,6 +1,6 @@
 // Phase 1 smoke test against a real timelimit-server (no UI).
 //
-//   npm run smoke -- --server http://localhost:8080 --mail me@example.com \
+//   npm run smoke -- --server http://localhost:8181 --mail me@example.com \
 //       --password geheim [--log ./server.log] [--simulate-child]
 //
 // --log: path of the server log (NODE_ENV=development prints the mail with
@@ -28,7 +28,7 @@ function arg(name: string, fallback?: string): string | undefined {
 
 const flag = (name: string) => process.argv.includes('--' + name)
 
-const serverUrl = arg('server', 'http://localhost:8080')!
+const serverUrl = arg('server', 'http://localhost:8181')!
 const mail = arg('mail', 'smoke-' + Date.now() + '@example.com')!
 const password = arg('password', 'smoke-password-123')!
 const logFile = arg('log')
