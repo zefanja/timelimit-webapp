@@ -18,7 +18,7 @@ Die **gleiche URL** wird in der Web-App und auf den Kind-Handys als Server einge
 
 ## Betrieb (Docker / Portainer)
 
-`docker-compose.yml` enthält Web-App, timelimit-server (aus dem Upstream-Quellcode gebaut) und MariaDB. Als Portainer-Stack anlegen und diese Variablen setzen:
+`docker-compose.yml` enthält Web-App, timelimit-server (aus dem Upstream-Quellcode gebaut) und PostgreSQL. Der aktuelle Server unterstützt **nur PostgreSQL** (UTF-8); MariaDB/MySQL funktionieren nicht mehr (Fehler „Please install mariadb package manually“). Als Portainer-Stack anlegen und diese Variablen setzen:
 
 | Variable | Bedeutung |
 |---|---|
@@ -29,6 +29,7 @@ Die **gleiche URL** wird in der Web-App und auf den Kind-Handys als Server einge
 | `DISABLE_SIGNUP` | `yes`, nachdem die eigene Familie angelegt ist |
 | `ALWAYS_PRO` | `yes` (Standard hier) schaltet alle Premium-Funktionen frei |
 | `ADMIN_TOKEN` | optional, für die Admin-API (Premium-Freischaltung aus der App) |
+| `SIGN_SECRET` | optional, beliebige lange Zufallszeichenkette; zusammen mit `ADMIN_TOKEN` nötig für die Premium-Freischaltung aus der App |
 | `WEB_PORT` | Port des Web-Containers auf dem Host (Standard 8080) |
 
 Davor gehört ein **Reverse Proxy mit HTTPS** (Traefik, Caddy, Nginx Proxy Manager …), der auf `web:80` zeigt und Websockets durchlässt. PWA-Installation, Service Worker und Web Crypto funktionieren nur in einem sicheren Kontext (HTTPS oder `localhost`).
@@ -43,11 +44,11 @@ docker build -t timelimit-webapp .
 docker run -d -p 8080:80 -e TIMELIMIT_UPSTREAM=http://timelimit-host:8080 timelimit-webapp
 ```
 
-> **Hinweis zur Datenbank-Variable:** Der Upstream-Server liest `DATABASE_URL`. Der GitHub-Spiegel `michaelsp/timelimit-server` liest stattdessen `DB_DRIVER`, `DB_HOST`, `DB_USER`, `DB_PASS` und `DB_NAME`. In seinem aktuellen Stand sind außerdem die Datenbank-Migrationen defekt (beim Test für diese App musste die Datei `build/database/migration/umzug.js` lokal angepasst werden). Deshalb wird hier der Upstream von Codeberg gebaut.
+> **Hinweis zur Datenbank:** Der Upstream-Server liest `DATABASE_URL` im Format `postgres://user:pass@host:5432/db`. Eine bestehende MariaDB lässt sich nicht weiterverwenden – für eine Neuinstallation einfach den PostgreSQL-Dienst aus der Compose-Datei nehmen. Der GitHub-Spiegel `michaelsp/timelimit-server` ist ein älterer Stand (liest `DB_*`-Variablen, Migrationen defekt) und wird hier nicht verwendet.
 
 ### Premium
 
-Ohne `ALWAYS_PRO=yes` lehnt der Server nach der Testphase einige Aktionen ab (z. B. Extrazeit, Sperren). Die App zeigt das an. Alternative: `ADMIN_TOKEN` setzen und unter **Einstellungen → Premium** freischalten. Die App ruft dann `POST /admin/unlock-premium` mit der Mail-Adresse des angemeldeten Elternteils auf.
+Ohne `ALWAYS_PRO=yes` lehnt der Server nach der Testphase einige Aktionen ab (z. B. Extrazeit, Sperren). Die App zeigt das an. Alternative: `ADMIN_TOKEN` und `SIGN_SECRET` setzen und unter **Einstellungen → Premium** freischalten. Die App holt dann mit dem Elternpasswort ein Identitäts-Token (`POST /parent/create-identity-token`) und ruft `POST /admin/unlock-premium-v2` auf. Bei älteren Servern ohne `SIGN_SECRET` nutzt sie `POST /admin/unlock-premium`.
 
 ## Ersteinrichtung
 

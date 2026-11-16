@@ -1,5 +1,5 @@
 # Test environment: timelimit-server in development mode (login codes are
-# printed to the server log instead of being mailed) + MariaDB.
+# printed to the server log instead of being mailed) + PostgreSQL.
 #
 #   docker compose -f docker-compose.dev.yml up -d
 #   docker compose -f docker-compose.dev.yml logs -f timelimit   # login codes
@@ -14,20 +14,27 @@ services:
     environment:
       NODE_ENV: development
       PORT: 8080
-      DATABASE_URL: mariadb://timelimit:timelimit@db:3306/timelimit
+      DATABASE_URL: postgres://timelimit:timelimit@db:5432/timelimit
       ADMIN_TOKEN: dev-admin-token
+      SIGN_SECRET: dev-sign-secret
       # ALWAYS_PRO: "yes"
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
-    image: mariadb:11
+    image: postgres:16-alpine
     environment:
-      MARIADB_DATABASE: timelimit
-      MARIADB_USER: timelimit
-      MARIADB_PASSWORD: timelimit
-      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+      POSTGRES_DB: timelimit
+      POSTGRES_USER: timelimit
+      POSTGRES_PASSWORD: timelimit
+      POSTGRES_INITDB_ARGS: --encoding=UTF8
     tmpfs:
-      - /var/lib/mysql
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timelimit -d timelimit"]
+      interval: 5s
+      timeout: 5s
+      retries: 20

@@ -551,6 +551,12 @@ export class SyncEngine {
     await this.sync()
   }
 
+  /** credentials for direct parent API calls (e.g. create-identity-token) */
+  parentCredentials(): { deviceAuthToken: string; parentUserId: string; parentPasswordSecondHash: string } {
+    const { parentId, secondHash } = this.requireUnlocked()
+    return { deviceAuthToken: this.session!.deviceAuthToken, parentUserId: parentId, parentPasswordSecondHash: secondHash }
+  }
+
   requestAppListAgain(deviceId: string) {
     this.crypto = resetDeviceKeys(this.crypto, deviceId)
     writeJson(this.store, KEYS.crypto, this.crypto)

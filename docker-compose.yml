@@ -1,4 +1,5 @@
-# Production stack for Portainer: web app (+ API proxy), timelimit-server, MariaDB.
+# Production stack for Portainer: web app (+ API proxy), timelimit-server, PostgreSQL.
+# The current timelimit-server supports PostgreSQL only (UTF-8 database).
 # Put an HTTPS reverse proxy (Traefik, Caddy, Nginx Proxy Manager, …) in front
 # of the "web" service. Use the same public URL in the web app AND on the child
 # phones (TimeLimit → vernetzter Modus → eigener Server).
@@ -24,26 +25,34 @@ services:
     environment:
       NODE_ENV: production
       PORT: 8080
-      DATABASE_URL: mariadb://timelimit:${DB_PASSWORD:?DB_PASSWORD fehlt}@db:3306/timelimit
+      DATABASE_URL: postgres://timelimit:${DB_PASSWORD:?DB_PASSWORD fehlt}@db:5432/timelimit
       MAIL_SENDER: ${MAIL_SENDER:?MAIL_SENDER fehlt}
       MAIL_TRANSPORT: ${MAIL_TRANSPORT:?MAIL_TRANSPORT fehlt}
       MAIL_WHITELIST: ${MAIL_WHITELIST:-}
       DISABLE_SIGNUP: ${DISABLE_SIGNUP:-no}
       ALWAYS_PRO: ${ALWAYS_PRO:-yes}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      # needed (together with ADMIN_TOKEN) for unlocking premium from the web app
+      SIGN_SECRET: ${SIGN_SECRET:-}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
-    image: mariadb:11
+    image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      MARIADB_DATABASE: timelimit
-      MARIADB_USER: timelimit
-      MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD fehlt}
-      MARIADB_RANDOM_ROOT_PASSWORD: "yes"
+      POSTGRES_DB: timelimit
+      POSTGRES_USER: timelimit
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD fehlt}
+      POSTGRES_INITDB_ARGS: --encoding=UTF8
     volumes:
-      - timelimit-db:/var/lib/mysql
+      - timelimit-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U timelimit -d timelimit"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
 volumes:
   timelimit-db:

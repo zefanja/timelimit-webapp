@@ -44,7 +44,7 @@ export function SettingsScreen() {
         {state.fullVersion !== 1 && (
           <>
             <p className="small muted">
-              Am einfachsten: den Server mit <span className="mono">ALWAYS_PRO=yes</span> starten. Alternativ hier über die Admin-API freischalten (benötigt <span className="mono">ADMIN_TOKEN</span> des Servers).
+              Am einfachsten: den Server mit <span className="mono">ALWAYS_PRO=yes</span> starten. Alternativ hier über die Admin-API freischalten (benötigt <span className="mono">ADMIN_TOKEN</span> und <span className="mono">SIGN_SECRET</span> auf dem Server).
             </p>
             <div className="field">
               <label htmlFor="admintoken">Admin-Token</label>
@@ -57,10 +57,15 @@ export function SettingsScreen() {
               </select>
               <button
                 className="primary"
-                disabled={busy || !adminToken || !parent?.mail}
+                disabled={busy || !adminToken}
                 onClick={() =>
                   run(async () => {
-                    await unlockPremium(new ApiClient(snapshot.session!.serverUrl), { adminToken, mail: parent!.mail, duration })
+                    await unlockPremium(new ApiClient(snapshot.session!.serverUrl), {
+                      adminToken,
+                      duration,
+                      mail: parent?.mail ?? '',
+                      ...engine.parentCredentials(),
+                    })
                     setAdminToken('')
                     await engine.sync()
                   }, 'Premium freigeschaltet')
@@ -69,7 +74,6 @@ export function SettingsScreen() {
                 Premium freischalten
               </button>
             </div>
-            {!parent?.mail && <p className="small muted">Der angemeldete Elternteil hat keine Mail-Adresse verknüpft.</p>}
           </>
         )}
       </div>
