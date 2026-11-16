@@ -30,7 +30,7 @@ Die **gleiche URL** wird in der Web-App und auf den Kind-Handys als Server einge
 | `ALWAYS_PRO` | `yes` (Standard hier) schaltet alle Premium-Funktionen frei |
 | `ADMIN_TOKEN` | optional, für die Admin-API (Premium-Freischaltung aus der App) |
 | `SIGN_SECRET` | optional, beliebige lange Zufallszeichenkette; zusammen mit `ADMIN_TOKEN` nötig für die Premium-Freischaltung aus der App |
-| `WEB_PORT` | Port des Web-Containers auf dem Host (Standard 8080) |
+| `WEB_PORT` | Port des Web-Containers auf dem Host (Standard 8181) |
 
 Davor gehört ein **Reverse Proxy mit HTTPS** (Traefik, Caddy, Nginx Proxy Manager …), der auf `web:80` zeigt und Websockets durchlässt. PWA-Installation, Service Worker und Web Crypto funktionieren nur in einem sicheren Kontext (HTTPS oder `localhost`).
 
@@ -41,7 +41,7 @@ docker build -t timelimit-webapp .
 ```
 
 ```bash
-docker run -d -p 8080:80 -e TIMELIMIT_UPSTREAM=http://timelimit-host:8080 timelimit-webapp
+docker run -d -p 8181:80 -e TIMELIMIT_UPSTREAM=http://timelimit-host:8080 timelimit-webapp
 ```
 
 > **Hinweis zur Datenbank:** Der Upstream-Server liest `DATABASE_URL` im Format `postgres://user:pass@host:5432/db`. Eine bestehende MariaDB lässt sich nicht weiterverwenden – für eine Neuinstallation einfach den PostgreSQL-Dienst aus der Compose-Datei nehmen. Der GitHub-Spiegel `michaelsp/timelimit-server` ist ein älterer Stand (liest `DB_*`-Variablen, Migrationen defekt) und wird hier nicht verwendet.
